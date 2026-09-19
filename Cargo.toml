@@ -1,0 +1,15 @@
+[package]
+name = "lotus"
+version = "1.0.0"
+edition = "2024"
+license = "MIT"
+authors = ["Efnilite"]
+
+[dependencies]
+egui = "0.36.2"
+eframe = { version = "0.36.2", features = ["persistence"] }
+egui_extras = { version = "0.36.2", features = ["svg"] }
+image = { version = "0.25.10", features = ["png"] }
+
+serde = { version = "1.0.229", features = ["derive"] }
+strum = { version = "0.28", features = ["derive"] }
