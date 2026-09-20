@@ -1,16 +1,17 @@
-use crate::{settings, ui};
+use crate::{editor, settings, ui};
 use eframe::Frame;
 use egui::{FontData, FontDefinitions, FontFamily, FontId, TextStyle, Ui};
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Deserialize, Serialize)]
 pub struct App {
-
     #[serde(skip)]
     pub active_window: Option<ui::ActiveWindow>,
 
-    pub settings: settings::Settings
+    pub settings: settings::Settings,
 
+    #[serde(skip)]
+    pub editor: editor::Editor,
 }
 
 impl App {
@@ -67,6 +68,6 @@ impl App {
 
 impl eframe::App for App {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
-        ui::render(ui, self);
+        ui::render(self, ui);
     }
 }

@@ -3,27 +3,14 @@ use eframe::emath::{Rect, Vec2};
 use eframe::epaint::Color32;
 use egui::{include_image, Image, ImageSource, Response, Sense, Ui};
 
+mod bottom;
+mod editor;
+mod left;
+mod left_tab;
 mod search;
 mod settings;
-mod status;
-mod tab;
 mod theme;
 mod top;
-
-pub fn render(ui: &mut Ui, app: &mut App) {
-    ui.add_enabled_ui(app.active_window.is_none(), |ui| {
-        top::render(app, ui);
-        status::render(app, ui);
-        tab::render(app, ui);
-    });
-
-    if let Some(window) = &app.active_window {
-        match window {
-            ActiveWindow::Settings => settings::render(app, ui),
-            ActiveWindow::Search => {}
-        }
-    }
-}
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum ActiveWindow {
@@ -47,7 +34,8 @@ pub enum Icon {
     Error,
     Warning,
     Terminal,
-    Analytics
+    Analytics,
+    Maximize,
 }
 
 impl Icon {
@@ -68,6 +56,24 @@ impl Icon {
             Icon::Warning => include_image!("../../assets/icons/warning.svg"),
             Icon::Terminal => include_image!("../../assets/icons/terminal.svg"),
             Icon::Analytics => include_image!("../../assets/icons/analytics.svg"),
+            Icon::Maximize => include_image!("../../assets/icons/maximize.svg"),
+        }
+    }
+}
+
+pub fn render(app: &mut App, ui: &mut Ui) {
+    ui.add_enabled_ui(app.active_window.is_none(), |ui| {
+        top::render(app, ui);
+        bottom::render(app, ui);
+        left::render(app, ui);
+        // left_tab::render(app, ui);
+        editor::render(app, ui);
+    });
+
+    if let Some(window) = &app.active_window {
+        match window {
+            ActiveWindow::Settings => settings::render(app, ui),
+            ActiveWindow::Search => {}
         }
     }
 }
@@ -89,11 +95,11 @@ fn render_icon_button(ui: &mut Ui, icon: Icon, button_size: f32) -> Option<Respo
     let (rect, response) = ui.allocate_exact_size(size, Sense::click());
 
     if response.hovered() || response.has_focus() {
-        let circle_color = Color32::from_rgba_unmultiplied(255, 255, 255, 35);
+        let circle_color = Color32::from_white_alpha(35);
         ui.painter().rect_filled(rect, 4, circle_color);
     }
     if response.is_pointer_button_down_on() {
-        let circle_color = Color32::from_rgba_unmultiplied(255, 255, 255, 38);
+        let circle_color = Color32::from_white_alpha(38);
         ui.painter().rect_filled(rect, 4, circle_color);
     }
 

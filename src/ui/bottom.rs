@@ -2,10 +2,10 @@ use crate::app::App;
 use eframe::epaint::Margin;
 use egui::{Align, Button, Frame, Layout, Panel, Response, Ui};
 
-const STATUS_NAME: &str = "status";
+const BOTTOM_NAME: &str = "bottom";
 
 pub fn render(app: &mut App, ui: &mut Ui) {
-    Panel::bottom(STATUS_NAME)
+    Panel::bottom(BOTTOM_NAME)
         .frame(Frame::default().inner_margin(Margin {
             top: 8,
             bottom: 8,
@@ -30,5 +30,5 @@ fn status_button(ui: &mut Ui, text: String) -> Response {
         ui.style_mut().spacing.button_padding.x += 16.0;
         ui.add(Button::new(text).frame(false))
     })
-    .inner
+        .inner
 }

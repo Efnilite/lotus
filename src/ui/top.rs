@@ -1,8 +1,8 @@
 use crate::app::App;
-use crate::ui::{large_icon_button, menu_icon_button, ActiveWindow, Icon, BUTTON_NO_ICON_OFFSET, LARGE_ICON_SIZE};
+use crate::ui::{large_icon_button, ActiveWindow, Icon, BUTTON_NO_ICON_OFFSET, MENU_ICON_SIZE};
 use egui::{
-    Align, Button, Frame, Image, Layout, Margin, MenuBar, Panel, Response, TextBuffer, Ui,
-    Vec2, ViewportCommand,
+    Align, Button, Frame, Image, Layout, Margin, MenuBar, Panel, PointerButton, Response, Sense,
+    TextBuffer, Ui, Vec2, ViewportCommand,
 };
 
 const HEADER_NAME: &str = "header";
@@ -17,6 +17,13 @@ pub fn render(app: &mut App, ui: &mut Ui) {
             right: 16,
         }))
         .show(ui, |ui| {
+            let header_rect = ui.max_rect();
+            let header_response = ui.interact(
+                header_rect,
+                ui.make_persistent_id("header_drag_area"),
+                Sense::click_and_drag(),
+            );
+
             ui.horizontal(|ui| {
                 ui.add_space(2.0);
                 ui.add(Image::new(Icon::Lotus.source()).fit_to_exact_size(Vec2::splat(25.)));
@@ -40,6 +47,17 @@ pub fn render(app: &mut App, ui: &mut Ui) {
                     if let Some(response) = large_icon_button(ui, Icon::Close) {
                         if response.clicked() {
                             ui.send_viewport_cmd(ViewportCommand::Close);
+                        }
+                    }
+
+                    ui.add_space(2.0);
+
+                    if let Some(response) = large_icon_button(ui, Icon::Maximize) {
+                        if response.clicked() {
+                            let is_maximized =
+                                ui.ctx().input(|i| i.viewport().maximized.unwrap_or(false));
+
+                            ui.send_viewport_cmd(ViewportCommand::Maximized(!is_maximized));
                         }
                     }
 
@@ -69,12 +87,20 @@ pub fn render(app: &mut App, ui: &mut Ui) {
                 });
             });
 
-            // let rect = ui.max_rect();
-            // let response = ui.allocate_rect(rect, Sense::click_and_drag());
-            //
-            // if response.drag_started_by(PointerButton::Primary) {
-            //     ui.ctx().send_viewport_cmd(ViewportCommand::StartDrag);
-            // }
+            if header_response.double_clicked_by(PointerButton::Primary) {
+                let is_maximized = ui.ctx().input(|i| i.viewport().maximized.unwrap_or(false));
+                ui.ctx()
+                    .send_viewport_cmd(ViewportCommand::Maximized(!is_maximized));
+            } else if header_response.drag_started_by(PointerButton::Primary) {
+                let is_maximized = ui.ctx().input(|i| i.viewport().maximized.unwrap_or(false));
+
+                if is_maximized {
+                    ui.ctx()
+                        .send_viewport_cmd(ViewportCommand::Maximized(false));
+                }
+
+                ui.ctx().send_viewport_cmd(ViewportCommand::StartDrag);
+            }
         });
 }
 
@@ -133,7 +159,7 @@ fn button<'a, R>(
     };
 
     let mut button = Button::image_and_text(
-        Image::new(icon.source()).fit_to_exact_size(Vec2::splat(LARGE_ICON_SIZE)),
+        Image::new(icon.source()).fit_to_exact_size(Vec2::splat(MENU_ICON_SIZE)),
         text,
     );
 

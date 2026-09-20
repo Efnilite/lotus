@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
 pub struct Theme {
-
     pub primary: Color32,
     pub text: Color32,
 
@@ -11,6 +10,4 @@ pub struct Theme {
 
 }
 
-pub struct EditorTheme {
-
-}
+pub struct EditorTheme {}
