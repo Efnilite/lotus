@@ -6,7 +6,7 @@ pub mod top;
 const BUTTON_NO_ICON_OFFSET: f32 = 20.;
 const BUTTON_ICON_SIZE: f32 = 15.;
 
-fn get_icon_source(icon: &str) -> Option<ImageSource<'static>> {
+fn find_icon_source(icon: &str) -> Option<ImageSource<'static>> {
     match icon {
         "zip" => Some(include_image!("../../assets/icons/zip.svg")),
         "close" => Some(include_image!("../../assets/icons/close.svg")),
@@ -18,6 +18,7 @@ fn get_icon_source(icon: &str) -> Option<ImageSource<'static>> {
         "lotus" => Some(include_image!("../../assets/icons/lotus.svg")),
         "search" => Some(include_image!("../../assets/icons/search.svg")),
         "tag" => Some(include_image!("../../assets/icons/tag.svg")),
+        "empty" => Some(include_image!("../../assets/icons/empty.svg")),
         _ => None,
     }
 }
