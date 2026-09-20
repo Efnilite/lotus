@@ -1,10 +1,17 @@
-use crate::ui;
+use crate::{settings, ui};
 use eframe::Frame;
 use egui::{FontData, FontDefinitions, FontFamily, FontId, TextStyle, Ui};
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Deserialize, Serialize)]
-pub struct App {}
+pub struct App {
+
+    #[serde(skip)]
+    pub active_window: Option<ui::ActiveWindow>,
+
+    pub settings: settings::Settings
+
+}
 
 impl App {
     pub fn new(context: &eframe::CreationContext<'_>) -> Self {
@@ -40,10 +47,9 @@ impl App {
         context.egui_ctx.global_style_mut(|style| {
             style.animation_time = 0.0;
 
-            style.text_styles.insert(
-                TextStyle::Body,
-                FontId::new(12.0, FontFamily::Proportional)
-            );
+            style
+                .text_styles
+                .insert(TextStyle::Body, FontId::new(12.0, FontFamily::Proportional));
 
             style.text_styles.insert(
                 TextStyle::Monospace,
@@ -60,8 +66,7 @@ impl App {
 }
 
 impl eframe::App for App {
-    fn ui(&mut self, ui: &mut Ui, frame: &mut Frame) {
-        ui::top::render(ui);
-        ui::status::render(ui);
+    fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
+        ui::render(ui, self);
     }
 }

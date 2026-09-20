@@ -1,8 +1,8 @@
 use crate::app::App;
 
 mod app;
-mod persistence;
 mod ui;
+mod settings;
 
 fn main() -> eframe::Result {
     eframe::run_native(
