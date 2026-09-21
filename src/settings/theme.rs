@@ -1,7 +1,7 @@
 use egui::Color32;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize, Serialize)]
 pub struct Theme {
     pub primary: Color32,
     pub text: Color32,

@@ -15,7 +15,7 @@ pub fn render(app: &mut App, ui: &mut Ui) {
         .show(ui, |ui| {
             ui.horizontal(|ui| {
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    status_button(ui, format!("Line {}, Column {}", 1, 4));
+                    status_button(ui, format!("{} {}, {} {}", app.settings.locale.line.as_str(), 1, app.settings.locale.column.as_str(), 4));
                     ui.add_space(16.);
                     status_button(ui, format!("Minecraft {}", "26.3"));
                     ui.add_space(16.);

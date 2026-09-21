@@ -1,5 +1,6 @@
 use crate::app::App;
-use crate::ui::{large_icon_button, Icon};
+use crate::ui::icon::Icon;
+use crate::ui::large_icon_button;
 use egui::{Color32, Frame, Margin, Panel, Ui};
 
 const LEFT_TAB_NAME: &str = "left tab";
@@ -21,7 +22,7 @@ pub fn render(app: &mut App, ui: &mut Ui) {
             .fill(Color32::from_white_alpha(50)))
         .show(ui, |ui| {
             ui.vertical(|ui| {
-                if let Some(response) = large_icon_button(ui, Icon::Folder) {}
+                if let Some(response) = large_icon_button(ui, Icon::Folder, Some(app.settings.locale.project.as_str())) {}
             });
         });
 }

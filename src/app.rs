@@ -59,9 +59,9 @@ impl App {
         });
 
         if let Some(storage) = context.storage {
-            let app: App = eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+            let mut app: App = eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
 
-            context.egui_ctx.set_zoom_factor(settings::ZOOM_LEVELS[app.settings.zoom_index]);
+            app.settings.init(&context.egui_ctx);
 
             app
         } else {

@@ -1,6 +1,6 @@
 use crate::app::App;
-use crate::settings;
-use crate::ui::{large_icon_button, ActiveWindow, Icon, BUTTON_NO_ICON_OFFSET, MENU_ICON_SIZE};
+use crate::ui::icon::Icon;
+use crate::ui::{large_icon_button, ActiveWindow, BUTTON_NO_ICON_OFFSET, MENU_ICON_SIZE};
 use egui::{
     Align, Button, Frame, Image, Layout, Margin, MenuBar, Panel, PointerButton, Response, Sense,
     TextBuffer, Ui, Vec2, ViewportCommand,
@@ -31,29 +31,35 @@ pub fn render(app: &mut App, ui: &mut Ui) {
                 ui.add_space(8.0);
 
                 MenuBar::new().ui(ui, |ui| {
-                    file(ui);
+                    file(app, ui);
                     ui.add_space(4.0);
-                    code(ui);
+                    code(app, ui);
                     ui.add_space(4.0);
-                    tools(ui);
+                    tools(app, ui);
                     ui.add_space(4.0);
                     view(app, ui);
                     ui.add_space(4.0);
-                    help(ui);
+                    help(app, ui);
                 });
 
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     ui.add_space(4.0);
 
-                    if let Some(response) = large_icon_button(ui, Icon::Close) {
+                    if let Some(response) =
+                        large_icon_button(ui, Icon::Close, Some(app.settings.locale.close.as_str()))
+                    {
                         if response.clicked() {
                             ui.send_viewport_cmd(ViewportCommand::Close);
                         }
                     }
 
-                    ui.add_space(2.0);
+                    ui.add_space(4.0);
 
-                    if let Some(response) = large_icon_button(ui, Icon::Maximize) {
+                    if let Some(response) = large_icon_button(
+                        ui,
+                        Icon::Maximize,
+                        Some(app.settings.locale.maximize.as_str()),
+                    ) {
                         if response.clicked() {
                             let is_maximized =
                                 ui.ctx().input(|i| i.viewport().maximized.unwrap_or(false));
@@ -62,9 +68,13 @@ pub fn render(app: &mut App, ui: &mut Ui) {
                         }
                     }
 
-                    ui.add_space(2.0);
+                    ui.add_space(4.0);
 
-                    if let Some(response) = large_icon_button(ui, Icon::Minimize) {
+                    if let Some(response) = large_icon_button(
+                        ui,
+                        Icon::Minimize,
+                        Some(app.settings.locale.minimize.as_str()),
+                    ) {
                         if response.clicked() {
                             ui.send_viewport_cmd(ViewportCommand::Minimized(true));
                         }
@@ -72,15 +82,23 @@ pub fn render(app: &mut App, ui: &mut Ui) {
 
                     ui.add_space(32.0);
 
-                    if let Some(response) = large_icon_button(ui, Icon::Settings) {
+                    if let Some(response) = large_icon_button(
+                        ui,
+                        Icon::Settings,
+                        Some(app.settings.locale.settings.as_str()),
+                    ) {
                         if response.clicked() {
                             app.active_window = Some(ActiveWindow::Settings);
                         }
                     }
 
-                    ui.add_space(2.0);
+                    ui.add_space(4.0);
 
-                    if let Some(response) = large_icon_button(ui, Icon::Search) {
+                    if let Some(response) = large_icon_button(
+                        ui,
+                        Icon::Search,
+                        Some(app.settings.locale.search.as_str()),
+                    ) {
                         if response.clicked() {
                             app.active_window = Some(ActiveWindow::Search);
                         }
@@ -171,135 +189,182 @@ fn button<'a, R>(
     Some(ui.add(button))
 }
 
-fn file(ui: &mut Ui) {
-    button(ui, vec![ButtonOption::Menu], "File", |ui| {
-        ui.set_min_width(DROPDOWN_WIDTH);
-        button(ui, vec![ButtonOption::SideMenu], "New", |ui| {
+fn file(app: &App, ui: &mut Ui) {
+    button(
+        ui,
+        vec![ButtonOption::Menu],
+        app.settings.locale.file.as_str(),
+        |ui| {
             ui.set_min_width(DROPDOWN_WIDTH);
-            if let Some(response) = simple_button(ui, "Skript File") {
+            button(
+                ui,
+                vec![ButtonOption::SideMenu],
+                app.settings.locale.new.as_str(),
+                |ui| {
+                    ui.set_min_width(DROPDOWN_WIDTH);
+                    if let Some(response) =
+                        simple_button(ui, app.settings.locale.skript_file.as_str())
+                    {
+                        if response.clicked() {}
+                    }
+                    if let Some(response) = simple_button(ui, app.settings.locale.file.as_str()) {
+                        if response.clicked() {}
+                    }
+                    if let Some(response) = simple_button(ui, app.settings.locale.folder.as_str()) {
+                        if response.clicked() {}
+                    }
+                },
+            );
+            if let Some(response) = option_button(
+                ui,
+                vec![ButtonOption::Icon(Icon::Folder)],
+                app.settings.locale.open.as_str(),
+            ) {
                 if response.clicked() {}
             }
-            if let Some(response) = simple_button(ui, "File") {
+            option_button(
+                ui,
+                vec![ButtonOption::SideMenu],
+                app.settings.locale.open_recent.as_str(),
+            );
+            if let Some(response) = simple_button(ui, app.settings.locale.close_project.as_str()) {
                 if response.clicked() {}
             }
-            if let Some(response) = simple_button(ui, "Directory") {
-                if response.clicked() {}
+            ui.separator();
+            if let Some(response) = simple_button(ui, app.settings.locale.exit.as_str()) {
+                if response.clicked() {
+                    ui.send_viewport_cmd(ViewportCommand::Close);
+                }
             }
-        });
-        if let Some(response) = option_button(ui, vec![ButtonOption::Icon(Icon::Folder)], "Open") {
-            if response.clicked() {}
-        }
-        option_button(ui, vec![ButtonOption::SideMenu], "Open Recent");
-        if let Some(response) = simple_button(ui, "Close Project") {
-            if response.clicked() {}
-        }
-        ui.separator();
-        if let Some(response) = simple_button(ui, "Exit") {
-            if response.clicked() {
-                ui.send_viewport_cmd(ViewportCommand::Close);
-            }
-        }
-    });
+        },
+    );
 }
 
-fn code(ui: &mut Ui) {
-    button(ui, vec![ButtonOption::Menu], "Code", |ui| {
-        button(ui, vec![ButtonOption::SideMenu], "Generate", |ui| {
-            if let Some(response) = simple_button(ui, "Command") {
+fn code(app: &App, ui: &mut Ui) {
+    button(
+        ui,
+        vec![ButtonOption::Menu],
+        app.settings.locale.code.as_str(),
+        |ui| {
+            button(
+                ui,
+                vec![ButtonOption::SideMenu],
+                app.settings.locale.generate.as_str(),
+                |ui| {
+                    if let Some(response) = simple_button(ui, app.settings.locale.command.as_str())
+                    {
+                        if response.clicked() {}
+                    }
+                    if let Some(response) = simple_button(ui, app.settings.locale.function.as_str())
+                    {
+                        if response.clicked() {}
+                    }
+                },
+            );
+            if let Some(response) = simple_button(ui, app.settings.locale.reformat.as_str()) {
                 if response.clicked() {}
             }
-            if let Some(response) = simple_button(ui, "Function") {
+
+            ui.separator();
+
+            if let Some(response) = option_button(
+                ui,
+                vec![
+                    ButtonOption::Icon(Icon::Tag),
+                    ButtonOption::Shortcut("Ctrl + /"),
+                ],
+                app.settings.locale.comment_line.as_str(),
+            ) {
                 if response.clicked() {}
             }
-        });
-        if let Some(response) = simple_button(ui, "Reformat") {
-            if response.clicked() {}
-        }
 
-        ui.separator();
+            ui.separator();
 
-        if let Some(response) = option_button(
-            ui,
-            vec![
-                ButtonOption::Icon(Icon::Tag),
-                ButtonOption::Shortcut("Ctrl + /"),
-            ],
-            "Comment Line",
-        ) {
-            if response.clicked() {}
-        }
-
-        ui.separator();
-
-        if let Some(response) = option_button(
-            ui,
-            vec![ButtonOption::Shortcut("Ctrl + Up")],
-            "Move Line Up",
-        ) {
-            if response.clicked() {}
-        }
-        if let Some(response) = option_button(
-            ui,
-            vec![ButtonOption::Shortcut("Ctrl + Down")],
-            "Move Line Down",
-        ) {
-            if response.clicked() {}
-        }
-        if let Some(response) = option_button(
-            ui,
-            vec![ButtonOption::Shortcut("Ctrl + Shift + Up")],
-            "Add Caret Above",
-        ) {
-            if response.clicked() {}
-        }
-        if let Some(response) = option_button(
-            ui,
-            vec![ButtonOption::Shortcut("Ctrl + Shift + Down")],
-            "Add Caret Below",
-        ) {
-            if response.clicked() {}
-        }
-    });
+            if let Some(response) = option_button(
+                ui,
+                vec![ButtonOption::Shortcut("Ctrl + Up")],
+                app.settings.locale.move_line_up.as_str(),
+            ) {
+                if response.clicked() {}
+            }
+            if let Some(response) = option_button(
+                ui,
+                vec![ButtonOption::Shortcut("Ctrl + Down")],
+                app.settings.locale.move_line_down.as_str(),
+            ) {
+                if response.clicked() {}
+            }
+            if let Some(response) = option_button(
+                ui,
+                vec![ButtonOption::Shortcut("Ctrl + Shift + Up")],
+                app.settings.locale.add_caret_above.as_str(),
+            ) {
+                if response.clicked() {}
+            }
+            if let Some(response) = option_button(
+                ui,
+                vec![ButtonOption::Shortcut("Ctrl + Shift + Down")],
+                app.settings.locale.add_caret_below.as_str(),
+            ) {
+                if response.clicked() {}
+            }
+        },
+    );
 }
 
-fn tools(ui: &mut Ui) {
-    button(ui, vec![ButtonOption::Menu], "Tools", |ui| {
-        if let Some(response) =
-            option_button(ui, vec![ButtonOption::Icon(Icon::Zip)], "Zip Project")
-        {
-            if response.clicked() {}
-        }
-    });
+fn tools(app: &App, ui: &mut Ui) {
+    button(
+        ui,
+        vec![ButtonOption::Menu],
+        app.settings.locale.tools.as_str(),
+        |ui| {
+            if let Some(response) = option_button(
+                ui,
+                vec![ButtonOption::Icon(Icon::Zip)],
+                app.settings.locale.zip_project.as_str(),
+            ) {
+                if response.clicked() {}
+            }
+        },
+    );
 }
 
 fn view(app: &mut App, ui: &mut Ui) {
-    button(ui, vec![ButtonOption::Menu], "View", |ui| {
-        if let Some(response) =
-            option_button(ui, vec![ButtonOption::Shortcut("Ctrl + Plus")], "Zoom In")
-        {
+    let view = app.settings.locale.view.to_owned();
+
+    button(ui, vec![ButtonOption::Menu], view.as_str(), |ui| {
+        if let Some(response) = option_button(
+            ui,
+            vec![ButtonOption::Shortcut("Ctrl + +")],
+            app.settings.locale.zoom_in.as_str(),
+        ) {
             if response.clicked() {
-                app.settings.zoom_index = (app.settings.zoom_index + 1).clamp(0, settings::ZOOM_LEVELS.len() - 1);
-                ui.set_zoom_factor(settings::ZOOM_LEVELS[app.settings.zoom_index])
+                app.settings.zoom_in(ui);
             }
         }
-        if let Some(response) =
-            option_button(ui, vec![ButtonOption::Shortcut("Ctrl + Minus")], "Zoom Out")
-        {
+        if let Some(response) = option_button(
+            ui,
+            vec![ButtonOption::Shortcut("Ctrl + -")],
+            app.settings.locale.zoom_out.as_str(),
+        ) {
             if response.clicked() {
-                if let Some(new) = app.settings.zoom_index.checked_sub_signed(1) {
-                    app.settings.zoom_index = new.clamp(0, settings::ZOOM_LEVELS.len() - 1);
-                    ui.set_zoom_factor(settings::ZOOM_LEVELS[app.settings.zoom_index])
-                }
+                app.settings.zoom_out(ui);
             }
         }
     });
 }
 
-fn help(ui: &mut Ui) {
-    button(ui, vec![ButtonOption::Menu], "Help", |ui| {
-        if let Some(response) = option_button(ui, vec![ButtonOption::Icon(Icon::Search)], "GitHub")
-        {
-            if response.clicked() {}
-        }
-    });
+fn help(app: &mut App, ui: &mut Ui) {
+    button(
+        ui,
+        vec![ButtonOption::Menu],
+        app.settings.locale.help.as_str(),
+        |ui| {
+            if let Some(response) =
+                option_button(ui, vec![ButtonOption::Icon(Icon::Search)], "GitHub")
+            {
+                if response.clicked() {}
+            }
+        },
+    );
 }
