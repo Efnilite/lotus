@@ -18,13 +18,11 @@ pub fn render(app: &mut App, ui: &mut Ui) {
             ui.vertical(|ui| {
                 if let Some(response) = large_icon_button(ui, Icon::Folder) {}
 
-                ui.add_space(4.);
-
                 ui.with_layout(Layout::bottom_up(Align::Center), |ui| {
                     if let Some(response) = large_icon_button(ui, Icon::Error) {}
-                    ui.add_space(6.);
+                    ui.add_space(8.);
                     if let Some(response) = large_icon_button(ui, Icon::Terminal) {}
-                    ui.add_space(6.);
+                    ui.add_space(8.);
                     if let Some(response) = large_icon_button(ui, Icon::Analytics) {}
                 });
             });

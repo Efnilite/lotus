@@ -1,4 +1,5 @@
 use crate::app::App;
+use crate::settings;
 use crate::ui::{large_icon_button, ActiveWindow, Icon, BUTTON_NO_ICON_OFFSET, MENU_ICON_SIZE};
 use egui::{
     Align, Button, Frame, Image, Layout, Margin, MenuBar, Panel, PointerButton, Response, Sense,
@@ -36,7 +37,7 @@ pub fn render(app: &mut App, ui: &mut Ui) {
                     ui.add_space(4.0);
                     tools(ui);
                     ui.add_space(4.0);
-                    view(ui);
+                    view(app, ui);
                     ui.add_space(4.0);
                     help(ui);
                 });
@@ -271,13 +272,25 @@ fn tools(ui: &mut Ui) {
     });
 }
 
-fn view(ui: &mut Ui) {
+fn view(app: &mut App, ui: &mut Ui) {
     button(ui, vec![ButtonOption::Menu], "View", |ui| {
-        if let Some(response) = simple_button(ui, "Zoom In") {
-            if response.clicked() {}
+        if let Some(response) =
+            option_button(ui, vec![ButtonOption::Shortcut("Ctrl + Plus")], "Zoom In")
+        {
+            if response.clicked() {
+                app.settings.zoom_index = (app.settings.zoom_index + 1).clamp(0, settings::ZOOM_LEVELS.len() - 1);
+                ui.set_zoom_factor(settings::ZOOM_LEVELS[app.settings.zoom_index])
+            }
         }
-        if let Some(response) = simple_button(ui, "Zoom Out") {
-            if response.clicked() {}
+        if let Some(response) =
+            option_button(ui, vec![ButtonOption::Shortcut("Ctrl + Minus")], "Zoom Out")
+        {
+            if response.clicked() {
+                if let Some(new) = app.settings.zoom_index.checked_sub_signed(1) {
+                    app.settings.zoom_index = new.clamp(0, settings::ZOOM_LEVELS.len() - 1);
+                    ui.set_zoom_factor(settings::ZOOM_LEVELS[app.settings.zoom_index])
+                }
+            }
         }
     });
 }
