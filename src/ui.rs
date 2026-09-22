@@ -26,9 +26,9 @@ pub fn render(app: &mut App, ui: &mut Ui) {
         top::render(app, ui);
         bottom::render(app, ui);
         left::render(app, ui);
-        bottom_tab::render(app, ui);
-        left_tab::render(app, ui);
-        // editor::render(app, ui);
+        // bottom_tab::render(app, ui);
+        // left_tab::render(app, ui);
+        editor::render(app, ui);
     });
 
     if let Some(window) = &app.active_window {

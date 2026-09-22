@@ -93,6 +93,19 @@ pub fn render(app: &mut App, ui: &mut Ui) {
                     let response = large_icon_button(
                         app,
                         ui,
+                        Icon::Update,
+                        app.settings.locale.update.as_str(),
+                        None,
+                    );
+                    if response.clicked() {
+
+                    }
+
+                    ui.add_space(4.0);
+
+                    let response = large_icon_button(
+                        app,
+                        ui,
                         Icon::Settings,
                         app.settings.locale.settings.as_str(),
                         Some(app.settings.keybinds.settings),

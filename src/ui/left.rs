@@ -9,6 +9,7 @@ pub fn render(app: &mut App, ui: &mut Ui) {
     Panel::left(LEFT_NAME)
         .resizable(false)
         .min_size(0.)
+        .exact_size(47.)
         .frame(Frame::default().inner_margin(Margin {
             top: 8,
             bottom: 8,

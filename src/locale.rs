@@ -45,6 +45,7 @@ pub struct Locale {
     pub zoom_in: String,
     pub zoom_out: String,
 
+    pub update: String,
     pub search: String,
     pub settings: String,
     pub minimize: String,

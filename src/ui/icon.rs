@@ -18,6 +18,7 @@ pub enum Icon {
     Terminal,
     Analytics,
     Maximize,
+    Update,
 }
 
 impl Icon {
@@ -39,6 +40,7 @@ impl Icon {
             Icon::Terminal => include_image!("../../assets/icons/terminal.svg"),
             Icon::Analytics => include_image!("../../assets/icons/analytics.svg"),
             Icon::Maximize => include_image!("../../assets/icons/maximize.svg"),
+            Icon::Update => include_image!("../../assets/icons/update.svg"),
         }
     }
 }

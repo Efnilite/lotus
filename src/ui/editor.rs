@@ -2,8 +2,6 @@ use crate::app::App;
 use eframe::epaint::Margin;
 use egui::{CentralPanel, Frame, Ui};
 
-const EDITOR_NAME: &str = "editor";
-
 pub fn render(app: &mut App, ui: &mut Ui) {
     CentralPanel::default()
         .frame(Frame::default().inner_margin(Margin {
