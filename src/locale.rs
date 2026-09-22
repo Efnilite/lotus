@@ -20,6 +20,9 @@ pub struct Locale {
     pub close_project: String,
     pub exit: String,
 
+    pub rename: String,
+    pub new_folder: String,
+
     pub copy: String,
     pub paste: String,
     pub delete: String,
@@ -44,6 +47,7 @@ pub struct Locale {
 
     pub zoom_in: String,
     pub zoom_out: String,
+    pub reset_zoom: String,
 
     pub update: String,
     pub search: String,

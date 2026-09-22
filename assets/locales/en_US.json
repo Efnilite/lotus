@@ -19,6 +19,9 @@
   "close_project": "Close Project",
   "exit": "Exit",
 
+  "rename": "Rename",
+  "new_folder": "New Folder",
+
   "copy": "Copy",
   "paste": "Paste",
   "delete": "Delete",
@@ -43,8 +46,7 @@
 
   "zoom_in": "Zoom In",
   "zoom_out": "Zoom Out",
-
-
+  "reset_zoom": "Reset Zoom to 100%",
 
   "update": "Update",
   "search": "Search",

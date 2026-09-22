@@ -57,6 +57,10 @@ impl App {
             );
         });
 
+        context.egui_ctx.options_mut(|options| {
+            options.zoom_with_keyboard = false;
+        });
+        
         #[cfg(not(debug_assertions))]
         if let Some(storage) = context.storage {
             if let Some(mut app) = get_value::<App>(storage, APP_KEY) {

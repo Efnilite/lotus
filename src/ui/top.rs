@@ -1,14 +1,16 @@
 use crate::app::App;
-use crate::settings::keybinds::Formattable;
 use crate::ui::icon::Icon;
-use crate::ui::{image_from_icon, large_icon_button, ActiveWindow, MENU_ICON_SIZE};
-use egui::{
-    Align, Button, Frame, Image, KeyboardShortcut, Layout, Margin, MenuBar, Panel, PointerButton,
-    Response, Sense, Ui, Vec2, ViewportCommand,
+use crate::ui::{
+    button, image_from_icon, large_icon_button, option_button, simple_button, ActiveWindow,
+    ButtonOption,
 };
+use egui::{
+    Align, Frame, Layout, Margin, MenuBar, Panel, PointerButton, Sense, Ui, ViewportCommand,
+};
+use egui::gui_zoom::zoom_out;
 
 const HEADER_NAME: &str = "header";
-const DROPDOWN_WIDTH: f32 = 280.;
+const DROPDOWN_WIDTH: f32 = 260.;
 
 pub fn render(app: &mut App, ui: &mut Ui) {
     Panel::top(HEADER_NAME)
@@ -144,88 +146,18 @@ pub fn render(app: &mut App, ui: &mut Ui) {
         });
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum ButtonOption {
-    Icon(Icon),
-    Shortcut(KeyboardShortcut),
-    Menu,
-    SideMenu,
-}
-
-fn simple_button(app: &App, ui: &mut Ui, text: &str) -> Option<Response> {
-    button(app, ui, vec![], text, |_| {})
-}
-
-fn option_button(
-    app: &App,
-    ui: &mut Ui,
-    options: Vec<ButtonOption>,
-    text: &str,
-) -> Option<Response> {
-    button(app, ui, options, text, |_| {})
-}
-
-fn button<'a, R>(
-    app: &App,
-    ui: &mut Ui,
-    options: Vec<ButtonOption>,
-    text: &str,
-    add_contents: impl FnOnce(&mut Ui) -> R,
-) -> Option<Response> {
-    let icon = options
-        .iter()
-        .find_map(|opt| match opt {
-            ButtonOption::Icon(icon) => Some(*icon),
-            _ => None,
-        })
-        .unwrap_or(Icon::Empty);
-    let image = image_from_icon(icon, MENU_ICON_SIZE);
-
-    if options.contains(&ButtonOption::SideMenu) || options.contains(&ButtonOption::Menu) {
-        ui.horizontal(|ui| {
-            if options.contains(&ButtonOption::SideMenu) {
-                ui.with_layout(Layout::top_down_justified(Align::LEFT), |ui| {
-                    ui.menu_image_text_button(image, text, |ui| {
-                        ui.set_min_width(DROPDOWN_WIDTH);
-                        add_contents(ui);
-                    });
-                });
-            } else {
-                ui.menu_button(text, |ui| {
-                    ui.set_min_width(DROPDOWN_WIDTH);
-                    add_contents(ui);
-                });
-            }
-        });
-
-        return None;
-    }
-
-    let shortcut = options.iter().find_map(|opt| match opt {
-        ButtonOption::Shortcut(s) => Some(s.to_formatted_string(app)),
-        _ => None,
-    });
-
-    let button = Button::image_and_text(image, text);
-    if let Some(sc) = shortcut {
-        Some(ui.add(button.shortcut_text(sc)))
-    } else {
-        Some(ui.add(button))
-    }
-}
-
 fn file(app: &App, ui: &mut Ui) {
     button(
         app,
         ui,
-        vec![ButtonOption::Menu],
+        vec![ButtonOption::Menu(DROPDOWN_WIDTH)],
         app.settings.locale.file.as_str(),
         |ui| {
             ui.set_min_width(DROPDOWN_WIDTH);
             button(
                 app,
                 ui,
-                vec![ButtonOption::SideMenu],
+                vec![ButtonOption::SideMenu(DROPDOWN_WIDTH)],
                 app.settings.locale.new.as_str(),
                 |ui| {
                     ui.set_min_width(DROPDOWN_WIDTH);
@@ -253,7 +185,7 @@ fn file(app: &App, ui: &mut Ui) {
             option_button(
                 app,
                 ui,
-                vec![ButtonOption::SideMenu],
+                vec![ButtonOption::SideMenu(DROPDOWN_WIDTH)],
                 app.settings.locale.open_recent.as_str(),
             );
             if let Some(response) =
@@ -274,7 +206,7 @@ fn edit(app: &App, ui: &mut Ui) {
     button(
         app,
         ui,
-        vec![ButtonOption::Menu],
+        vec![ButtonOption::Menu(DROPDOWN_WIDTH)],
         app.settings.locale.edit.as_str(),
         |ui| {
             if let Some(response) = option_button(
@@ -362,13 +294,13 @@ fn code(app: &App, ui: &mut Ui) {
     button(
         app,
         ui,
-        vec![ButtonOption::Menu],
+        vec![ButtonOption::Menu(DROPDOWN_WIDTH)],
         app.settings.locale.code.as_str(),
         |ui| {
             button(
                 app,
                 ui,
-                vec![ButtonOption::SideMenu],
+                vec![ButtonOption::SideMenu(DROPDOWN_WIDTH)],
                 app.settings.locale.generate.as_str(),
                 |ui| {
                     if let Some(response) =
@@ -440,7 +372,7 @@ fn tools(app: &App, ui: &mut Ui) {
     button(
         app,
         ui,
-        vec![ButtonOption::Menu],
+        vec![ButtonOption::Menu(DROPDOWN_WIDTH)],
         app.settings.locale.tools.as_str(),
         |ui| {
             if let Some(response) = option_button(
@@ -454,36 +386,68 @@ fn tools(app: &App, ui: &mut Ui) {
     );
 }
 
-fn view(app: &mut App, _ui: &mut Ui) {
-    let _view = app.settings.locale.view.to_owned();
+fn view(app: &mut App, ui: &mut Ui) {
+    let mut zoom_in = false;
+    let mut zoom_out = false;
+    let mut reset_zoom = false;
 
-    // button(app, ui, vec![ButtonOption::Menu], view.as_str(), |ui| {
-    //     if let Some(response) = option_button(app,
-    //                                           ui,
-    //         vec![ButtonOption::Shortcut(app.settings.keybinds.zoom_in)],
-    //         app.settings.locale.zoom_in.as_str(),
-    //     ) {
-    //         if response.clicked() {
-    //             app.settings.zoom_in(ui);
-    //         }
-    //     }
-    //     if let Some(response) = option_button(app,
-    //                                           ui,
-    //         vec![ButtonOption::Shortcut(app.settings.keybinds.zoom_out)],
-    //         app.settings.locale.zoom_out.as_str(),
-    //     ) {
-    //         if response.clicked() {
-    //             app.settings.zoom_out(ui);
-    //         }
-    //     }
-    // });
+    button(
+        app,
+        ui,
+        vec![ButtonOption::Menu(DROPDOWN_WIDTH)],
+        app.settings.locale.view.as_str(),
+        |ui| {
+            if let Some(response) = option_button(
+                app,
+                ui,
+                vec![ButtonOption::Shortcut(app.settings.keybinds.zoom_in)],
+                app.settings.locale.zoom_in.as_str(),
+            ) {
+                if response.clicked() {
+                    zoom_in = true;
+                }
+            }
+
+            if let Some(response) = option_button(
+                app,
+                ui,
+                vec![ButtonOption::Shortcut(app.settings.keybinds.zoom_out)],
+                app.settings.locale.zoom_out.as_str(),
+            ) {
+                if response.clicked() {
+                    zoom_out = true;
+                }
+            }
+
+            if let Some(response) = option_button(
+                app,
+                ui,
+                vec![ButtonOption::Shortcut(app.settings.keybinds.reset_zoom)],
+                app.settings.locale.reset_zoom.as_str(),
+            ) {
+                if response.clicked() {
+                    reset_zoom = true;
+                }
+            }
+        },
+    );
+
+    if zoom_in {
+        app.settings.zoom_in(ui);
+    }
+    if zoom_out {
+        app.settings.zoom_out(ui);
+    }
+    if reset_zoom {
+        app.settings.reset_zoom(ui);
+    }
 }
 
 fn help(app: &mut App, ui: &mut Ui) {
     button(
         app,
         ui,
-        vec![ButtonOption::Menu],
+        vec![ButtonOption::Menu(DROPDOWN_WIDTH)],
         app.settings.locale.help.as_str(),
         |ui| {
             if let Some(response) =

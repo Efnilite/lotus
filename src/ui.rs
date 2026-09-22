@@ -3,7 +3,8 @@ use crate::settings::keybinds::Formattable;
 use crate::ui::icon::Icon;
 use eframe::emath::{Rect, Vec2};
 use eframe::epaint::Color32;
-use egui::{Image, KeyboardShortcut, Response, Sense, Ui};
+use egui::{Button, Image, KeyboardShortcut, Layout, Response, Sense, Ui};
+use emath::Align;
 
 mod bottom;
 mod bottom_tab;
@@ -20,6 +21,8 @@ pub struct ViewState {
     active_window: Option<ActiveWindow>,
     active_bottom_tab: Option<ActiveBottomTab>,
     active_left_tab: Option<ActiveLeftTab>,
+
+    tree_state: egui_ltreeview::TreeViewState<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -141,4 +144,80 @@ fn render_icon_button(
 
 fn image_from_icon<'a>(icon: Icon, size: f32) -> Image<'a> {
     Image::new(icon.source()).fit_to_exact_size(Vec2::splat(size))
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum ButtonOption {
+    Icon(Icon),
+    Shortcut(KeyboardShortcut),
+    Menu(f32),
+    SideMenu(f32),
+}
+
+fn simple_button(app: &App, ui: &mut Ui, text: &str) -> Option<Response> {
+    button(app, ui, vec![], text, |_| {})
+}
+
+fn option_button(
+    app: &App,
+    ui: &mut Ui,
+    options: Vec<ButtonOption>,
+    text: &str,
+) -> Option<Response> {
+    button(app, ui, options, text, |_| {})
+}
+
+fn button<'a, R>(
+    app: &App,
+    ui: &mut Ui,
+    options: Vec<ButtonOption>,
+    text: &str,
+    add_contents: impl FnOnce(&mut Ui) -> R,
+) -> Option<Response> {
+    let icon = options
+        .iter()
+        .find_map(|opt| match opt {
+            ButtonOption::Icon(icon) => Some(*icon),
+            _ => None,
+        })
+        .unwrap_or(Icon::Empty);
+    let image = image_from_icon(icon, MENU_ICON_SIZE);
+
+    let width = *options.iter().find_map(|opt| match opt {
+        ButtonOption::Menu(w) => Some(w),
+        ButtonOption::SideMenu(w) => Some(w),
+        _ => None,
+    }).unwrap_or(&100.);
+
+    if options.iter().any(|it| matches!(it, ButtonOption::SideMenu(_))) || options.iter().any(|it| matches!(it, ButtonOption::Menu(_))) {
+        ui.horizontal(|ui| {
+            if options.iter().any(|it| matches!(it, ButtonOption::SideMenu(_))) {
+                ui.with_layout(Layout::top_down_justified(Align::LEFT), |ui| {
+                    ui.menu_image_text_button(image, text, |ui| {
+                        ui.set_min_width(width);
+                        add_contents(ui);
+                    });
+                });
+            } else {
+                ui.menu_button(text, |ui| {
+                    ui.set_min_width(width);
+                    add_contents(ui);
+                });
+            }
+        });
+
+        return None;
+    }
+
+    let shortcut = options.iter().find_map(|opt| match opt {
+        ButtonOption::Shortcut(s) => Some(s.to_formatted_string(app)),
+        _ => None,
+    });
+
+    let button = Button::image_and_text(image, text);
+    if let Some(sc) = shortcut {
+        Some(ui.add(button.shortcut_text(sc)))
+    } else {
+        Some(ui.add(button))
+    }
 }

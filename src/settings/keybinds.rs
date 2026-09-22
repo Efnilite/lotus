@@ -18,6 +18,7 @@ pub struct Keybinds {
 
     pub zoom_in: KeyboardShortcut,
     pub zoom_out: KeyboardShortcut,
+    pub reset_zoom: KeyboardShortcut,
 
     pub comment_line: KeyboardShortcut,
     pub reformat: KeyboardShortcut,
@@ -48,8 +49,9 @@ impl Default for Keybinds {
             replace_in_file: KeyboardShortcut::new(Modifiers::COMMAND, Key::R),
             find: KeyboardShortcut::new(Modifiers::COMMAND.plus(Modifiers::SHIFT), Key::F),
             find_in_file: KeyboardShortcut::new(Modifiers::COMMAND, Key::F),
-            zoom_in: KeyboardShortcut::new(Modifiers::COMMAND.plus(Modifiers::SHIFT), Key::Plus),
-            zoom_out: KeyboardShortcut::new(Modifiers::COMMAND.plus(Modifiers::SHIFT), Key::Minus),
+            zoom_in: KeyboardShortcut::new(Modifiers::COMMAND, Key::Plus),
+            zoom_out: KeyboardShortcut::new(Modifiers::COMMAND, Key::Minus),
+            reset_zoom: KeyboardShortcut::new(Modifiers::COMMAND, Key::Num0),
             comment_line: KeyboardShortcut::new(Modifiers::COMMAND, Key::Slash),
             reformat: KeyboardShortcut::new(Modifiers::COMMAND.plus(Modifiers::SHIFT), Key::Plus),
             move_up: KeyboardShortcut::new(Modifiers::COMMAND, Key::ArrowUp),
