@@ -1,5 +1,5 @@
 use crate::{editor, settings, ui};
-use eframe::Frame;
+use eframe::{get_value, Frame, Storage, APP_KEY};
 use egui::{FontData, FontDefinitions, FontFamily, FontId, TextStyle, Ui};
 use serde::{Deserialize, Serialize};
 
@@ -59,19 +59,22 @@ impl App {
         });
 
         if let Some(storage) = context.storage {
-            let mut app: App = eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+            if let Some(mut app) = get_value::<App>(storage, APP_KEY) {
+                app.settings.init(&context.egui_ctx);
 
-            app.settings.init(&context.egui_ctx);
-
-            app
-        } else {
-            Default::default()
+                return app;
+            }
         }
+        Default::default()
     }
 }
 
 impl eframe::App for App {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut Frame) {
         ui::render(self, ui);
+    }
+
+    fn save(&mut self, storage: &mut dyn Storage) {
+        eframe::set_value(storage, eframe::APP_KEY, self);
     }
 }
