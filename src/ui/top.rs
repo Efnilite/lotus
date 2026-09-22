@@ -1,9 +1,10 @@
 use crate::app::App;
+use crate::settings::keybinds::Formattable;
 use crate::ui::icon::Icon;
 use crate::ui::{large_icon_button, ActiveWindow, BUTTON_NO_ICON_OFFSET, MENU_ICON_SIZE};
 use egui::{
-    Align, Button, Frame, Image, Layout, Margin, MenuBar, Panel, PointerButton, Response, Sense,
-    TextBuffer, Ui, Vec2, ViewportCommand,
+    Align, Button, Frame, Image, KeyboardShortcut, Layout, Margin, MenuBar, Panel, PointerButton,
+    Response, Sense, Ui, Vec2, ViewportCommand,
 };
 
 const HEADER_NAME: &str = "header";
@@ -33,6 +34,8 @@ pub fn render(app: &mut App, ui: &mut Ui) {
                 MenuBar::new().ui(ui, |ui| {
                     file(app, ui);
                     ui.add_space(4.0);
+                    edit(app, ui);
+                    ui.add_space(4.0);
                     code(app, ui);
                     ui.add_space(4.0);
                     tools(app, ui);
@@ -45,63 +48,70 @@ pub fn render(app: &mut App, ui: &mut Ui) {
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     ui.add_space(4.0);
 
-                    if let Some(response) =
-                        large_icon_button(ui, Icon::Close, Some(app.settings.locale.close.as_str()))
-                    {
-                        if response.clicked() {
-                            ui.send_viewport_cmd(ViewportCommand::Close);
-                        }
+                    let response = large_icon_button(
+                        app,
+                        ui,
+                        Icon::Close,
+                        app.settings.locale.close.as_str(),
+                        None,
+                    );
+                    if response.clicked() {
+                        ui.send_viewport_cmd(ViewportCommand::Close);
                     }
 
                     ui.add_space(4.0);
 
-                    if let Some(response) = large_icon_button(
+                    let response = large_icon_button(
+                        app,
                         ui,
                         Icon::Maximize,
-                        Some(app.settings.locale.maximize.as_str()),
-                    ) {
-                        if response.clicked() {
-                            let is_maximized =
-                                ui.ctx().input(|i| i.viewport().maximized.unwrap_or(false));
+                        app.settings.locale.maximize.as_str(),
+                        None,
+                    );
+                    if response.clicked() {
+                        let is_maximized =
+                            ui.ctx().input(|i| i.viewport().maximized.unwrap_or(false));
 
-                            ui.send_viewport_cmd(ViewportCommand::Maximized(!is_maximized));
-                        }
+                        ui.send_viewport_cmd(ViewportCommand::Maximized(!is_maximized));
                     }
 
                     ui.add_space(4.0);
 
-                    if let Some(response) = large_icon_button(
+                    let response = large_icon_button(
+                        app,
                         ui,
                         Icon::Minimize,
-                        Some(app.settings.locale.minimize.as_str()),
-                    ) {
-                        if response.clicked() {
-                            ui.send_viewport_cmd(ViewportCommand::Minimized(true));
-                        }
+                        app.settings.locale.minimize.as_str(),
+                        None,
+                    );
+                    if response.clicked() {
+                        ui.send_viewport_cmd(ViewportCommand::Minimized(true));
                     }
 
                     ui.add_space(32.0);
 
-                    if let Some(response) = large_icon_button(
+                    let response = large_icon_button(
+                        app,
                         ui,
                         Icon::Settings,
-                        Some(app.settings.locale.settings.as_str()),
-                    ) {
-                        if response.clicked() {
-                            app.active_window = Some(ActiveWindow::Settings);
-                        }
+                        app.settings.locale.settings.as_str(),
+                        Some(app.settings.keybinds.settings),
+                    );
+                    if response.clicked() {
+                        app.active_window = Some(ActiveWindow::Settings);
                     }
 
                     ui.add_space(4.0);
 
-                    if let Some(response) = large_icon_button(
+                    let response = large_icon_button(
+                        app,
                         ui,
                         Icon::Search,
-                        Some(app.settings.locale.search.as_str()),
-                    ) {
-                        if response.clicked() {
-                            app.active_window = Some(ActiveWindow::Search);
-                        }
+                        app.settings.locale.search.as_str(),
+                        Some(app.settings.keybinds.search),
+                    );
+                    if response.clicked() {
+                        app.active_window = Some(ActiveWindow::Search);
                     }
                 });
             });
@@ -124,22 +134,28 @@ pub fn render(app: &mut App, ui: &mut Ui) {
 }
 
 #[derive(PartialEq)]
-enum ButtonOption<'a> {
+enum ButtonOption {
     Icon(Icon),
-    Shortcut(&'a str),
+    Shortcut(KeyboardShortcut),
     Menu,
     SideMenu,
 }
 
-fn simple_button(ui: &mut Ui, text: &str) -> Option<Response> {
-    button(ui, vec![], text, |_| {})
+fn simple_button(app: &App, ui: &mut Ui, text: &str) -> Option<Response> {
+    button(app, ui, vec![], text, |_| {})
 }
 
-fn option_button(ui: &mut Ui, options: Vec<ButtonOption>, text: &str) -> Option<Response> {
-    button(ui, options, text, |_| {})
+fn option_button(
+    app: &App,
+    ui: &mut Ui,
+    options: Vec<ButtonOption>,
+    text: &str,
+) -> Option<Response> {
+    button(app, ui, options, text, |_| {})
 }
 
 fn button<'a, R>(
+    app: &App,
     ui: &mut Ui,
     options: Vec<ButtonOption>,
     text: &str,
@@ -162,7 +178,7 @@ fn button<'a, R>(
 
     let shortcut = options.iter().find_map(|opt| {
         if let ButtonOption::Shortcut(s) = opt {
-            Some(s.as_str())
+            Some(s.to_formatted_string(app))
         } else {
             None
         }
@@ -191,31 +207,38 @@ fn button<'a, R>(
 
 fn file(app: &App, ui: &mut Ui) {
     button(
+        app,
         ui,
         vec![ButtonOption::Menu],
         app.settings.locale.file.as_str(),
         |ui| {
             ui.set_min_width(DROPDOWN_WIDTH);
             button(
+                app,
                 ui,
                 vec![ButtonOption::SideMenu],
                 app.settings.locale.new.as_str(),
                 |ui| {
                     ui.set_min_width(DROPDOWN_WIDTH);
                     if let Some(response) =
-                        simple_button(ui, app.settings.locale.skript_file.as_str())
+                        simple_button(app, ui, app.settings.locale.skript_file.as_str())
                     {
                         if response.clicked() {}
                     }
-                    if let Some(response) = simple_button(ui, app.settings.locale.file.as_str()) {
+                    if let Some(response) =
+                        simple_button(app, ui, app.settings.locale.file.as_str())
+                    {
                         if response.clicked() {}
                     }
-                    if let Some(response) = simple_button(ui, app.settings.locale.folder.as_str()) {
+                    if let Some(response) =
+                        simple_button(app, ui, app.settings.locale.folder.as_str())
+                    {
                         if response.clicked() {}
                     }
                 },
             );
             if let Some(response) = option_button(
+                app,
                 ui,
                 vec![ButtonOption::Icon(Icon::Folder)],
                 app.settings.locale.open.as_str(),
@@ -223,15 +246,18 @@ fn file(app: &App, ui: &mut Ui) {
                 if response.clicked() {}
             }
             option_button(
+                app,
                 ui,
                 vec![ButtonOption::SideMenu],
                 app.settings.locale.open_recent.as_str(),
             );
-            if let Some(response) = simple_button(ui, app.settings.locale.close_project.as_str()) {
+            if let Some(response) =
+                simple_button(app, ui, app.settings.locale.close_project.as_str())
+            {
                 if response.clicked() {}
             }
             ui.separator();
-            if let Some(response) = simple_button(ui, app.settings.locale.exit.as_str()) {
+            if let Some(response) = simple_button(app, ui, app.settings.locale.exit.as_str()) {
                 if response.clicked() {
                     ui.send_viewport_cmd(ViewportCommand::Close);
                 }
@@ -240,38 +266,140 @@ fn file(app: &App, ui: &mut Ui) {
     );
 }
 
-fn code(app: &App, ui: &mut Ui) {
+fn edit(app: &App, ui: &mut Ui) {
     button(
+        app,
         ui,
         vec![ButtonOption::Menu],
-        app.settings.locale.code.as_str(),
+        app.settings.locale.edit.as_str(),
         |ui| {
-            button(
+            if let Some(response) = option_button(
+                app,
                 ui,
-                vec![ButtonOption::SideMenu],
-                app.settings.locale.generate.as_str(),
-                |ui| {
-                    if let Some(response) = simple_button(ui, app.settings.locale.command.as_str())
-                    {
-                        if response.clicked() {}
-                    }
-                    if let Some(response) = simple_button(ui, app.settings.locale.function.as_str())
-                    {
-                        if response.clicked() {}
-                    }
-                },
-            );
-            if let Some(response) = simple_button(ui, app.settings.locale.reformat.as_str()) {
+                vec![ButtonOption::Shortcut(app.settings.keybinds.copy)],
+                app.settings.locale.copy.as_str(),
+            ) {
+                if response.clicked() {}
+            }
+
+            if let Some(response) = option_button(
+                app,
+                ui,
+                vec![ButtonOption::Shortcut(app.settings.keybinds.paste)],
+                app.settings.locale.paste.as_str(),
+            ) {
+                if response.clicked() {}
+            }
+
+            if let Some(response) = option_button(
+                app,
+                ui,
+                vec![ButtonOption::Shortcut(app.settings.keybinds.delete)],
+                app.settings.locale.delete.as_str(),
+            ) {
+                if response.clicked() {}
+            }
+
+            if let Some(response) = option_button(
+                app,
+                ui,
+                vec![ButtonOption::Shortcut(app.settings.keybinds.undo)],
+                app.settings.locale.undo.as_str(),
+            ) {
+                if response.clicked() {}
+            }
+
+            if let Some(response) = option_button(
+                app,
+                ui,
+                vec![ButtonOption::Shortcut(app.settings.keybinds.select_all)],
+                app.settings.locale.select_all.as_str(),
+            ) {
                 if response.clicked() {}
             }
 
             ui.separator();
 
             if let Some(response) = option_button(
+                app,
+                ui,
+                vec![ButtonOption::Shortcut(app.settings.keybinds.find)],
+                app.settings.locale.find.as_str(),
+            ) {
+                if response.clicked() {}
+            }
+
+            if let Some(response) = option_button(
+                app,
+                ui,
+                vec![ButtonOption::Shortcut(app.settings.keybinds.find_in_file)],
+                app.settings.locale.find_in_file.as_str(),
+            ) {
+                if response.clicked() {}
+            }
+
+            ui.separator();
+
+            if let Some(response) = option_button(
+                app,
+                ui,
+                vec![ButtonOption::Shortcut(app.settings.keybinds.replace)],
+                app.settings.locale.replace.as_str(),
+            ) {
+                if response.clicked() {}
+            }
+
+            if let Some(response) = option_button(
+                app,
+                ui,
+                vec![ButtonOption::Shortcut(
+                    app.settings.keybinds.replace_in_file,
+                )],
+                app.settings.locale.replace_in_file.as_str(),
+            ) {
+                if response.clicked() {}
+            }
+        },
+    );
+}
+
+fn code(app: &App, ui: &mut Ui) {
+    button(
+        app,
+        ui,
+        vec![ButtonOption::Menu],
+        app.settings.locale.code.as_str(),
+        |ui| {
+            button(
+                app,
+                ui,
+                vec![ButtonOption::SideMenu],
+                app.settings.locale.generate.as_str(),
+                |ui| {
+                    if let Some(response) =
+                        simple_button(app, ui, app.settings.locale.command.as_str())
+                    {
+                        if response.clicked() {}
+                    }
+                    if let Some(response) =
+                        simple_button(app, ui, app.settings.locale.function.as_str())
+                    {
+                        if response.clicked() {}
+                    }
+                },
+            );
+            if let Some(response) = simple_button(app, ui, app.settings.locale.reformat.as_str()) {
+                if response.clicked() {}
+            }
+
+            ui.separator();
+
+            if let Some(response) = option_button(
+                app,
                 ui,
                 vec![
                     ButtonOption::Icon(Icon::Tag),
-                    ButtonOption::Shortcut("Ctrl + /"),
+                    ButtonOption::Shortcut(app.settings.keybinds.comment_line),
                 ],
                 app.settings.locale.comment_line.as_str(),
             ) {
@@ -281,29 +409,37 @@ fn code(app: &App, ui: &mut Ui) {
             ui.separator();
 
             if let Some(response) = option_button(
+                app,
                 ui,
-                vec![ButtonOption::Shortcut("Ctrl + Up")],
-                app.settings.locale.move_line_up.as_str(),
+                vec![ButtonOption::Shortcut(app.settings.keybinds.move_up)],
+                app.settings.locale.move_up.as_str(),
             ) {
                 if response.clicked() {}
             }
             if let Some(response) = option_button(
+                app,
                 ui,
-                vec![ButtonOption::Shortcut("Ctrl + Down")],
-                app.settings.locale.move_line_down.as_str(),
+                vec![ButtonOption::Shortcut(app.settings.keybinds.move_down)],
+                app.settings.locale.move_down.as_str(),
             ) {
                 if response.clicked() {}
             }
             if let Some(response) = option_button(
+                app,
                 ui,
-                vec![ButtonOption::Shortcut("Ctrl + Shift + Up")],
+                vec![ButtonOption::Shortcut(
+                    app.settings.keybinds.add_caret_above,
+                )],
                 app.settings.locale.add_caret_above.as_str(),
             ) {
                 if response.clicked() {}
             }
             if let Some(response) = option_button(
+                app,
                 ui,
-                vec![ButtonOption::Shortcut("Ctrl + Shift + Down")],
+                vec![ButtonOption::Shortcut(
+                    app.settings.keybinds.add_caret_below,
+                )],
                 app.settings.locale.add_caret_below.as_str(),
             ) {
                 if response.clicked() {}
@@ -314,11 +450,13 @@ fn code(app: &App, ui: &mut Ui) {
 
 fn tools(app: &App, ui: &mut Ui) {
     button(
+        app,
         ui,
         vec![ButtonOption::Menu],
         app.settings.locale.tools.as_str(),
         |ui| {
             if let Some(response) = option_button(
+                app,
                 ui,
                 vec![ButtonOption::Icon(Icon::Zip)],
                 app.settings.locale.zip_project.as_str(),
@@ -332,36 +470,37 @@ fn tools(app: &App, ui: &mut Ui) {
 fn view(app: &mut App, ui: &mut Ui) {
     let view = app.settings.locale.view.to_owned();
 
-    button(ui, vec![ButtonOption::Menu], view.as_str(), |ui| {
-        if let Some(response) = option_button(
-            ui,
-            vec![ButtonOption::Shortcut("Ctrl + +")],
-            app.settings.locale.zoom_in.as_str(),
-        ) {
-            if response.clicked() {
-                app.settings.zoom_in(ui);
-            }
-        }
-        if let Some(response) = option_button(
-            ui,
-            vec![ButtonOption::Shortcut("Ctrl + -")],
-            app.settings.locale.zoom_out.as_str(),
-        ) {
-            if response.clicked() {
-                app.settings.zoom_out(ui);
-            }
-        }
-    });
+    // button(app, ui, vec![ButtonOption::Menu], view.as_str(), |ui| {
+    //     if let Some(response) = option_button(app,
+    //                                           ui,
+    //         vec![ButtonOption::Shortcut(app.settings.keybinds.zoom_in)],
+    //         app.settings.locale.zoom_in.as_str(),
+    //     ) {
+    //         if response.clicked() {
+    //             app.settings.zoom_in(ui);
+    //         }
+    //     }
+    //     if let Some(response) = option_button(app,
+    //                                           ui,
+    //         vec![ButtonOption::Shortcut(app.settings.keybinds.zoom_out)],
+    //         app.settings.locale.zoom_out.as_str(),
+    //     ) {
+    //         if response.clicked() {
+    //             app.settings.zoom_out(ui);
+    //         }
+    //     }
+    // });
 }
 
 fn help(app: &mut App, ui: &mut Ui) {
     button(
+        app,
         ui,
         vec![ButtonOption::Menu],
         app.settings.locale.help.as_str(),
         |ui| {
             if let Some(response) =
-                option_button(ui, vec![ButtonOption::Icon(Icon::Search)], "GitHub")
+                option_button(app, ui, vec![ButtonOption::Icon(Icon::Search)], "GitHub")
             {
                 if response.clicked() {}
             }

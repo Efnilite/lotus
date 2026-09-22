@@ -34,8 +34,8 @@
   "function": "Function",
   "reformat": "Reformat",
   "comment_line": "Comment Line",
-  "move_line_up": "Move Line Up",
-  "move_line_down": "Move Line Down",
+  "move_up": "Move Line Up",
+  "move_down": "Move Line Down",
   "add_caret_above": "Add Caret Above",
   "add_caret_below": "Add Caret Below",
 

@@ -27,7 +27,6 @@ pub fn render(app: &mut App, ui: &mut Ui) {
 
 fn status_button(ui: &mut Ui, text: String) -> Response {
     ui.scope(|ui| {
-        ui.style_mut().spacing.button_padding.x += 16.0;
         ui.add(Button::new(text).frame(false))
     })
         .inner

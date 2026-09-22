@@ -35,8 +35,8 @@ pub struct Locale {
     pub function: String,
     pub reformat: String,
     pub comment_line: String,
-    pub move_line_up: String,
-    pub move_line_down: String,
+    pub move_up: String,
+    pub move_down: String,
     pub add_caret_above: String,
     pub add_caret_below: String,
 

@@ -2,7 +2,9 @@ use crate::app::App;
 use crate::ui::icon::Icon;
 use eframe::emath::{Rect, Vec2};
 use eframe::epaint::Color32;
-use egui::{Image, Response, Sense, Ui};
+use egui::{Image, KeyboardShortcut, Response, Sense, Ui};
+use egui::Event::Text;
+use crate::settings::keybinds::Formattable;
 
 mod bottom;
 mod editor;
@@ -12,6 +14,7 @@ mod left_tab;
 mod search;
 mod settings;
 mod top;
+mod bottom_tab;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ActiveWindow {
@@ -24,8 +27,9 @@ pub fn render(app: &mut App, ui: &mut Ui) {
         top::render(app, ui);
         bottom::render(app, ui);
         left::render(app, ui);
-        // left_tab::render(app, ui);
-        editor::render(app, ui);
+        bottom_tab::render(app, ui);
+        left_tab::render(app, ui);
+        // editor::render(app, ui);
     });
 
     if let Some(window) = &app.active_window {
@@ -40,15 +44,15 @@ const BUTTON_NO_ICON_OFFSET: f32 = 20.;
 const MENU_ICON_SIZE: f32 = 15.;
 const LARGE_ICON_SIZE: f32 = 20.;
 
-fn menu_icon_button(ui: &mut Ui, icon: Icon, tooltip: Option<&str>) -> Option<Response> {
-    render_icon_button(ui, icon, MENU_ICON_SIZE, tooltip)
+fn menu_icon_button(app: &App,ui: &mut Ui, icon: Icon, tooltip: &str, shortcut: Option<KeyboardShortcut>) -> Response {
+    render_icon_button(app, ui, icon, MENU_ICON_SIZE, tooltip, shortcut)
 }
 
-fn large_icon_button(ui: &mut Ui, icon: Icon, tooltip: Option<&str>) -> Option<Response> {
-    render_icon_button(ui, icon, LARGE_ICON_SIZE, tooltip)
+fn large_icon_button(app: &App,ui: &mut Ui, icon: Icon, tooltip: &str, shortcut: Option<KeyboardShortcut>) -> Response {
+    render_icon_button(app, ui, icon, LARGE_ICON_SIZE, tooltip, shortcut)
 }
 
-fn render_icon_button(ui: &mut Ui, icon: Icon, button_size: f32, tooltip: Option<&str>) -> Option<Response> {
+fn render_icon_button(app: &App, ui: &mut Ui, icon: Icon, button_size: f32, tooltip: &str, shortcut: Option<KeyboardShortcut>) -> Response {
     ui.style_mut().spacing.item_spacing = Vec2::splat(5.0);
 
     let padding = 4.0;
@@ -70,9 +74,15 @@ fn render_icon_button(ui: &mut Ui, icon: Icon, button_size: f32, tooltip: Option
     let icon_rect = Rect::from_center_size(rect.center(), Vec2::splat(button_size));
     image.paint_at(ui, icon_rect);
 
-    if let Some(tooltip) = tooltip {
-        Some(response.on_hover_text(tooltip))
+    if let Some(shortcut) = shortcut {
+        response.on_hover_ui(|ui| {
+            ui.horizontal(|ui| {
+                ui.label(tooltip);
+                ui.add_space(4.0);
+                ui.weak(shortcut.to_formatted_string(app));
+            });
+        })
     } else {
-        Some(response)
+        response.on_hover_text(tooltip)
     }
 }

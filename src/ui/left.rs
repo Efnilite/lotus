@@ -17,14 +17,14 @@ pub fn render(app: &mut App, ui: &mut Ui) {
         }))
         .show(ui, |ui| {
             ui.vertical(|ui| {
-                if let Some(response) = large_icon_button(ui, Icon::Folder, Some(app.settings.locale.project.as_str())) {}
+                large_icon_button(app, ui, Icon::Folder, app.settings.locale.project.as_str(), Some(app.settings.keybinds.project));
 
                 ui.with_layout(Layout::bottom_up(Align::Center), |ui| {
-                    if let Some(response) = large_icon_button(ui, Icon::Error, Some(app.settings.locale.problems.as_str())) {}
+                    large_icon_button(app, ui, Icon::Analytics, app.settings.locale.analytics.as_str(), Some(app.settings.keybinds.analytics));
                     ui.add_space(6.);
-                    if let Some(response) = large_icon_button(ui, Icon::Terminal, Some(app.settings.locale.terminal.as_str())) {}
+                    large_icon_button(app, ui, Icon::Terminal, app.settings.locale.terminal.as_str(), Some(app.settings.keybinds.terminal));
                     ui.add_space(6.);
-                    if let Some(response) = large_icon_button(ui, Icon::Analytics, Some(app.settings.locale.analytics.as_str())) {}
+                    large_icon_button(app, ui, Icon::Error, app.settings.locale.problems.as_str(), Some(app.settings.keybinds.problems));
                 });
             });
         });

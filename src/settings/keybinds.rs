@@ -4,33 +4,36 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub struct Keybinds {
-    copy: KeyboardShortcut,
-    paste: KeyboardShortcut,
-    delete: KeyboardShortcut,
-    undo: KeyboardShortcut,
-    select_all: KeyboardShortcut,
+    pub copy: KeyboardShortcut,
+    pub paste: KeyboardShortcut,
+    pub delete: KeyboardShortcut,
+    pub undo: KeyboardShortcut,
+    pub select_all: KeyboardShortcut,
 
-    replace: KeyboardShortcut,
-    replace_in_file: KeyboardShortcut,
+    pub replace: KeyboardShortcut,
+    pub replace_in_file: KeyboardShortcut,
 
-    find: KeyboardShortcut,
-    find_in_file: KeyboardShortcut,
+    pub find: KeyboardShortcut,
+    pub find_in_file: KeyboardShortcut,
 
-    zoom_in: KeyboardShortcut,
-    zoom_out: KeyboardShortcut,
+    pub zoom_in: KeyboardShortcut,
+    pub zoom_out: KeyboardShortcut,
 
-    comment: KeyboardShortcut,
-    reformat: KeyboardShortcut,
+    pub comment_line: KeyboardShortcut,
+    pub reformat: KeyboardShortcut,
 
-    move_up: KeyboardShortcut,
-    move_down: KeyboardShortcut,
-    add_caret_above: KeyboardShortcut,
-    add_caret_below: KeyboardShortcut,
+    pub move_up: KeyboardShortcut,
+    pub move_down: KeyboardShortcut,
+    pub add_caret_above: KeyboardShortcut,
+    pub add_caret_below: KeyboardShortcut,
 
-    project: KeyboardShortcut,
-    problems: KeyboardShortcut,
-    terminal: KeyboardShortcut,
-    analytics: KeyboardShortcut,
+    pub project: KeyboardShortcut,
+    pub problems: KeyboardShortcut,
+    pub terminal: KeyboardShortcut,
+    pub analytics: KeyboardShortcut,
+
+    pub search: KeyboardShortcut,
+    pub settings: KeyboardShortcut,
 }
 
 impl Default for Keybinds {
@@ -47,7 +50,7 @@ impl Default for Keybinds {
             find_in_file: KeyboardShortcut::new(Modifiers::COMMAND, Key::F),
             zoom_in: KeyboardShortcut::new(Modifiers::COMMAND.plus(Modifiers::SHIFT), Key::Plus),
             zoom_out: KeyboardShortcut::new(Modifiers::COMMAND.plus(Modifiers::SHIFT), Key::Minus),
-            comment: KeyboardShortcut::new(Modifiers::COMMAND, Key::Slash),
+            comment_line: KeyboardShortcut::new(Modifiers::COMMAND, Key::Slash),
             reformat: KeyboardShortcut::new(Modifiers::COMMAND.plus(Modifiers::SHIFT), Key::Plus),
             move_up: KeyboardShortcut::new(Modifiers::COMMAND, Key::ArrowUp),
             move_down: KeyboardShortcut::new(Modifiers::COMMAND, Key::ArrowDown),
@@ -63,6 +66,9 @@ impl Default for Keybinds {
             problems: KeyboardShortcut::new(Modifiers::ALT, Key::Num2),
             terminal: KeyboardShortcut::new(Modifiers::ALT, Key::Num3),
             analytics: KeyboardShortcut::new(Modifiers::ALT, Key::Num4),
+
+            search: KeyboardShortcut::new(Modifiers::COMMAND.plus(Modifiers::ALT), Key::F),
+            settings: KeyboardShortcut::new(Modifiers::COMMAND.plus(Modifiers::ALT), Key::S),
         }
     }
 }
@@ -80,11 +86,11 @@ impl<'a> IntoIterator for &'a Keybinds {
             ("Select All", &self.select_all),
             ("Replace", &self.replace),
             ("Replace in File", &self.replace_in_file),
-            ("Find", &self.find),
+            ("Find", &self.search),
             ("Find in File", &self.find_in_file),
             ("Zoom In", &self.zoom_in),
             ("Zoom Out", &self.zoom_out),
-            ("Comment", &self.comment),
+            ("Comment", &self.comment_line),
             ("Reformat", &self.reformat),
             ("Move Up", &self.move_up),
             ("Move Down", &self.move_down),
@@ -112,11 +118,11 @@ impl<'a> IntoIterator for &'a mut Keybinds {
             ("Select All", &mut self.select_all),
             ("Replace", &mut self.replace),
             ("Replace in File", &mut self.replace_in_file),
-            ("Find", &mut self.find),
+            ("Find", &mut self.search),
             ("Find in File", &mut self.find_in_file),
             ("Zoom In", &mut self.zoom_in),
             ("Zoom Out", &mut self.zoom_out),
-            ("Comment", &mut self.comment),
+            ("Comment", &mut self.comment_line),
             ("Reformat", &mut self.reformat),
             ("Move Up", &mut self.move_up),
             ("Move Down", &mut self.move_down),
@@ -131,31 +137,68 @@ impl<'a> IntoIterator for &'a mut Keybinds {
     }
 }
 
-trait Formattable {
+pub trait Formattable {
 
-    fn format(&self, app: &App) -> String;
+    fn to_formatted_string(&self, app: &App) -> String;
 
 }
 
 impl Formattable for KeyboardShortcut {
 
-    fn format(&self, app: &App) -> String {
-        let mut builder = String::with_capacity(32);
+    fn to_formatted_string(&self, app: &App) -> String {
+        let mut builder = Vec::with_capacity(3);
 
-        if self.modifiers.ctrl {
-            builder.push_str(app.settings.locale.ctrl.as_str());
+        if self.modifiers.command {
+            builder.push(app.settings.locale.ctrl.as_str());
         }
-        if self.modifiers.mac_cmd {
+        #[cfg(target_os = "macos")]
+        if self.modifiers.command {
             builder.push_str(app.settings.locale.cmd.as_str());
         }
         if self.modifiers.alt {
-            builder.push_str(app.settings.locale.alt.as_str());
+            builder.push(app.settings.locale.alt.as_str());
         }
         if self.modifiers.shift {
-            builder.push_str(app.settings.locale.shift.as_str());
+            builder.push(app.settings.locale.shift.as_str());
         }
 
-        builder
+        let key = match self.logical_key {
+            Key::ArrowUp => app.settings.locale.arrow_up.as_str(),
+            Key::ArrowDown => app.settings.locale.arrow_down.as_str(),
+            Key::ArrowLeft => app.settings.locale.arrow_left.as_str(),
+            Key::ArrowRight => app.settings.locale.arrow_right.as_str(),
+
+            Key::Escape => app.settings.locale.escape.as_str(),
+            Key::Tab => app.settings.locale.tab.as_str(),
+            Key::Backspace => app.settings.locale.backspace.as_str(),
+            Key::Enter => app.settings.locale.enter.as_str(),
+            Key::Space => app.settings.locale.space.as_str(),
+
+            Key::Colon => app.settings.locale.colon.as_str(),
+            Key::Comma => app.settings.locale.comma.as_str(),
+            Key::Backslash => app.settings.locale.backslash.as_str(),
+            Key::Slash => app.settings.locale.slash.as_str(),
+            Key::Pipe => app.settings.locale.pipe.as_str(),
+            Key::Questionmark => app.settings.locale.question_mark.as_str(),
+            Key::Exclamationmark => app.settings.locale.exclamation_mark.as_str(),
+            Key::OpenBracket => app.settings.locale.open_bracket.as_str(),
+            Key::CloseBracket => app.settings.locale.close_bracket.as_str(),
+            Key::OpenCurlyBracket => app.settings.locale.open_curly_bracket.as_str(),
+            Key::CloseCurlyBracket => app.settings.locale.close_curly_bracket.as_str(),
+            Key::Backtick => app.settings.locale.backtick.as_str(),
+            Key::Minus => app.settings.locale.minus.as_str(),
+            Key::Period => app.settings.locale.period.as_str(),
+            Key::Plus => app.settings.locale.plus.as_str(),
+            Key::Equals => app.settings.locale.equals.as_str(),
+            Key::Semicolon => app.settings.locale.semicolon.as_str(),
+            Key::Quote => app.settings.locale.quote.as_str(),
+
+            _ => self.logical_key.name(),
+        };
+
+        builder.push(key);
+
+        builder.join(" + ")
     }
 
 }

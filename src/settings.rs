@@ -2,7 +2,7 @@ use crate::locale;
 use egui::{Context, Ui};
 use serde::{Deserialize, Serialize};
 
-mod keybinds;
+pub mod keybinds;
 mod theme;
 
 const ZOOM_LEVELS: [f32; 13] = [
@@ -44,3 +44,4 @@ impl Settings {
         }
     }
 }
+
