@@ -1,7 +1,7 @@
 use crate::app::App;
 use crate::settings::keybinds::Formattable;
 use crate::ui::icon::Icon;
-use crate::ui::{large_icon_button, ActiveWindow, BUTTON_NO_ICON_OFFSET, MENU_ICON_SIZE};
+use crate::ui::{large_icon_button, ActiveWindow, MENU_ICON_SIZE};
 use egui::{
     Align, Button, Frame, Image, KeyboardShortcut, Layout, Margin, MenuBar, Panel, PointerButton,
     Response, Sense, Ui, Vec2, ViewportCommand,
@@ -97,9 +97,7 @@ pub fn render(app: &mut App, ui: &mut Ui) {
                         app.settings.locale.update.as_str(),
                         None,
                     );
-                    if response.clicked() {
-
-                    }
+                    if response.clicked() {}
 
                     ui.add_space(4.0);
 
@@ -174,48 +172,46 @@ fn button<'a, R>(
     text: &str,
     add_contents: impl FnOnce(&mut Ui) -> R,
 ) -> Option<Response> {
+    let icon = options
+        .iter()
+        .find_map(|opt| match opt {
+            ButtonOption::Icon(icon) => Some(icon),
+            _ => None,
+        })
+        .unwrap_or(&Icon::Empty);
+    let image = Image::new(icon.source()).fit_to_exact_size(Vec2::splat(MENU_ICON_SIZE));
+
     if options.contains(&ButtonOption::SideMenu) || options.contains(&ButtonOption::Menu) {
         ui.horizontal(|ui| {
             if options.contains(&ButtonOption::SideMenu) {
-                ui.add_space(BUTTON_NO_ICON_OFFSET);
+                ui.with_layout(Layout::top_down_justified(Align::LEFT), |ui| {
+                    ui.menu_image_text_button(image, text, |ui| {
+                        ui.set_min_width(DROPDOWN_WIDTH);
+                        add_contents(ui);
+                    });
+                });
+            } else {
+                ui.menu_button(text, |ui| {
+                    ui.set_min_width(DROPDOWN_WIDTH);
+                    add_contents(ui);
+                });
             }
-
-            ui.menu_button(text, |ui| {
-                ui.set_min_width(DROPDOWN_WIDTH);
-                add_contents(ui);
-            });
         });
 
         return None;
     }
 
-    let shortcut = options.iter().find_map(|opt| {
-        if let ButtonOption::Shortcut(s) = opt {
-            Some(s.to_formatted_string(app))
-        } else {
-            None
-        }
+    let shortcut = options.iter().find_map(|opt| match opt {
+        ButtonOption::Shortcut(s) => Some(s.to_formatted_string(app)),
+        _ => None,
     });
 
-    let icon = if let Some(ButtonOption::Icon(icon)) = options
-        .iter()
-        .find(|opt| matches!(opt, ButtonOption::Icon(_)))
-    {
-        icon
-    } else {
-        &Icon::Empty
-    };
-
-    let mut button = Button::image_and_text(
-        Image::new(icon.source()).fit_to_exact_size(Vec2::splat(MENU_ICON_SIZE)),
-        text,
-    );
-
+    let button = Button::image_and_text(image, text);
     if let Some(sc) = shortcut {
-        button = button.shortcut_text(sc);
+        Some(ui.add(button.shortcut_text(sc)))
+    } else {
+        Some(ui.add(button))
     }
-
-    Some(ui.add(button))
 }
 
 fn file(app: &App, ui: &mut Ui) {
@@ -263,8 +259,8 @@ fn file(app: &App, ui: &mut Ui) {
             ui.separator();
             if let Some(response) = simple_button(app, ui, app.settings.locale.exit.as_str())
                 && response.clicked() {
-                    ui.send_viewport_cmd(ViewportCommand::Close);
-                }
+                ui.send_viewport_cmd(ViewportCommand::Close);
+            }
         },
     );
 }
