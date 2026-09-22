@@ -1,4 +1,4 @@
-name: Rust - Test
+name: Rust - Formatting
 
 on:
   push:
@@ -15,7 +15,7 @@ env:
 
 jobs:
   test:
-    name: Run Cargo Tests
+    name: Run Cargo Check
     runs-on: ubuntu-latest
 
     steps:
@@ -28,5 +28,5 @@ jobs:
       - name: Enable Rust cache
         uses: Swatinem/rust-cache@v2
 
-      - name: Run tests
-        run: cargo test -j default --all-targets --all-features
+      - name: Run formatting
+        run: cargo check -j default --all-targets --all-features
