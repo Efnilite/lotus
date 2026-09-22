@@ -17,7 +17,6 @@ pub fn render(app: &mut App, ui: &mut Ui) {
                 ui.centered_and_justified(|ui| {
                     ui.heading("Create new file Ctrl + N\nSearch Double Shift\nDrop files here to open them");
                 });
-                return;
             }
         });
 }

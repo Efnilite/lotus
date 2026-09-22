@@ -99,9 +99,7 @@ impl Locale {
     pub const ALL: [&str; 1] = ["en_US"];
 
     pub fn load_language(lang_code: &str) -> Self {
-        let json_data = match lang_code {
-            _ => include_str!("../assets/locales/en_US.json"),
-        };
+        let json_data = include_str!("../assets/locales/en_US.json");
 
         serde_json::from_str(json_data).unwrap() // if locale is invalid, panic
     }

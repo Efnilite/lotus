@@ -18,7 +18,7 @@ pub fn render(app: &mut App, ui: &mut Ui) {
             .fill(Color32::from_white_alpha(50)))
         .show(ui, |ui| {
             ui.horizontal(|ui| {
-                let response = large_icon_button(app, ui, Icon::Folder, app.settings.locale.project.as_str(), None);
+                let _response = large_icon_button(app, ui, Icon::Folder, app.settings.locale.project.as_str(), None);
             });
         });
 }

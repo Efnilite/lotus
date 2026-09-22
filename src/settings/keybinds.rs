@@ -209,7 +209,7 @@ impl Keybinds {
         let mut should_zoom_out = false;
 
         ui.input_mut(|i| {
-            for (action, shortcut) in self.into_iter() {
+            for (_action, _shortcut) in self.into_iter() {
                 if i.consume_shortcut(&self.copy) {
                     // app.editor.copy_selection();
                 }

@@ -3,7 +3,6 @@ use crate::ui::icon::Icon;
 use eframe::emath::{Rect, Vec2};
 use eframe::epaint::Color32;
 use egui::{Image, KeyboardShortcut, Response, Sense, Ui};
-use egui::Event::Text;
 use crate::settings::keybinds::Formattable;
 
 mod bottom;
