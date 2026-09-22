@@ -9,16 +9,25 @@ pub fn render(app: &mut App, ui: &mut Ui) {
     Panel::bottom(BOTTOM_TAB_NAME)
         .min_size(0.)
         .resizable(true)
-        .frame(Frame::default().inner_margin(Margin {
-            top: 8,
-            bottom: 8,
-            left: 8,
-            right: 8,
-        })
-            .fill(Color32::from_white_alpha(50)))
+        .frame(
+            Frame::default()
+                .inner_margin(Margin {
+                    top: 8,
+                    bottom: 8,
+                    left: 8,
+                    right: 8,
+                })
+                .fill(Color32::from_white_alpha(50)),
+        )
         .show(ui, |ui| {
             ui.horizontal(|ui| {
-                let _response = large_icon_button(app, ui, Icon::Folder, app.settings.locale.project.as_str(), None);
+                let _response = large_icon_button(
+                    app,
+                    ui,
+                    Icon::Folder,
+                    app.settings.locale.project.as_str(),
+                    None,
+                );
             });
         });
 }

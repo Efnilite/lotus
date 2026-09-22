@@ -101,7 +101,7 @@ impl<'a> IntoIterator for &'a Keybinds {
             ("Terminal", &self.terminal),
             ("Analytics", &self.analytics),
         ]
-            .into_iter()
+        .into_iter()
     }
 }
 
@@ -133,18 +133,15 @@ impl<'a> IntoIterator for &'a mut Keybinds {
             ("Terminal", &mut self.terminal),
             ("Analytics", &mut self.analytics),
         ]
-            .into_iter()
+        .into_iter()
     }
 }
 
 pub trait Formattable {
-
     fn to_formatted_string(&self, app: &App) -> String;
-
 }
 
 impl Formattable for KeyboardShortcut {
-
     fn to_formatted_string(&self, app: &App) -> String {
         let mut builder = Vec::with_capacity(3);
 
@@ -200,7 +197,6 @@ impl Formattable for KeyboardShortcut {
 
         builder.join(" + ")
     }
-
 }
 
 impl Keybinds {

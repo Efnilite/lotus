@@ -17,7 +17,7 @@ pub fn render(app: &mut App, ui: &mut Ui) {
 
             ui.horizontal(|ui| {
                 if ui.button("Close").clicked() {
-                    app.active_window = None;
+                    app.view_state.active_window = None;
                 }
             });
         });

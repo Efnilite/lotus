@@ -96,7 +96,6 @@ pub struct Locale {
 }
 
 impl Locale {
-
     pub const ALL: [&str; 1] = ["en_US"];
 
     pub fn load_language(lang_code: &str) -> Self {

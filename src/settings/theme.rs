@@ -7,7 +7,6 @@ pub struct Theme {
     pub text: Color32,
 
     pub header_background: Color32,
-
 }
 
 pub struct EditorTheme {}

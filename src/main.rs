@@ -3,10 +3,10 @@ use eframe::{run_native, NativeOptions};
 use egui::ViewportBuilder;
 
 mod app;
-mod ui;
-mod settings;
 mod editor;
 mod locale;
+mod settings;
+mod ui;
 
 fn main() -> eframe::Result {
     run_native(
